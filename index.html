@@ -13,21 +13,22 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23101B33'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23DCE2E8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..500,0..100,0..1&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..500,0..100,0..1&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{background:#101B33;color:#DCE2E8;-webkit-font-smoothing:antialiased}
 main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px 96px}
-h1{font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 96;font-weight:330;font-size:clamp(28px,6.4vw,68px);line-height:1.32;letter-spacing:0}
+h1{font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 96;font-weight:330;font-size:clamp(28px,6.4vw,68px);line-height:1.32;letter-spacing:0;transform-origin:50% 50%;will-change:transform;animation:breathe 5.6s ease-in-out infinite}
 h1 span{display:block;white-space:nowrap}
-#b{opacity:0;transition:opacity 1.6s ease}
-#b.in{opacity:1}
-footer{position:fixed;bottom:30px;left:0;right:0;text-align:center;font-family:'Inter Tight',system-ui,sans-serif;font-size:12px;letter-spacing:.06em}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.012)}}
+#b{opacity:0;animation:fadein 1.6s ease .62s forwards}
+@keyframes fadein{to{opacity:1}}
+footer{position:fixed;bottom:30px;left:0;right:0;text-align:center;font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 24;font-weight:330;font-size:15px;letter-spacing:.02em}
 footer a{color:#7C8798;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:2px;transition:color .3s}
 footer a:hover{color:#DCE2E8}
 footer a:focus-visible{outline:2px solid #DCE2E8;outline-offset:4px}
-@media (prefers-reduced-motion: reduce){#b{opacity:1;transition:none}}
+@media (prefers-reduced-motion: reduce){h1{animation:none}#b{opacity:1;animation:none}}
 </style>
 </head>
 <body>
@@ -35,17 +36,5 @@ footer a:focus-visible{outline:2px solid #DCE2E8;outline-offset:4px}
 <h1><span id="a">good companies.</span><span id="b">good company.</span></h1>
 </main>
 <footer><a href="mailto:hello@goodcompanylabs.com">say hello</a></footer>
-<script>
-var a=document.getElementById('a'),b=document.getElementById('b');
-setTimeout(function(){b.className='in'},620);
-if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-var t0=Date.now();
-(function breathe(){
-var s=(Math.sin((Date.now()-t0)/2400)*0.6).toFixed(2)+'px';
-a.style.letterSpacing=s;b.style.letterSpacing=s;
-requestAnimationFrame(breathe);
-})();
-}
-</script>
 </body>
 </html>
