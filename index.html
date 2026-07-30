@@ -18,23 +18,135 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{background:#101B33;color:#DCE2E8;-webkit-font-smoothing:antialiased}
-main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px 96px}
+#sky{position:fixed;inset:0;display:block;z-index:0}
+main{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px 96px}
 h1{font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 96;font-weight:330;font-size:clamp(28px,6.4vw,68px);line-height:1.32;letter-spacing:0;transform-origin:50% 50%;will-change:transform;animation:breathe 6s ease-in-out infinite}
 h1 span{display:block;white-space:nowrap}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.028)}}
 #b{opacity:0;animation:fadein 1.6s ease .62s forwards}
 @keyframes fadein{to{opacity:1}}
-footer{position:fixed;bottom:30px;left:0;right:0;text-align:center;font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 24;font-weight:330;font-size:15px;letter-spacing:.02em}
-footer a{color:#7C8798;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:2px;transition:color .3s}
+footer{position:fixed;bottom:30px;left:0;right:0;text-align:center;font-family:'Fraunces',Georgia,serif;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 24;font-weight:330;font-size:15px;letter-spacing:.02em;z-index:1}
+footer a{color:#7C8798;text-decoration:none;transition:color .3s}
 footer a:hover{color:#DCE2E8}
 footer a:focus-visible{outline:2px solid #DCE2E8;outline-offset:4px}
 @media (prefers-reduced-motion: reduce){h1{animation:none}#b{opacity:1;animation:none}}
 </style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 <main>
 <h1><span id="a">good companies.</span><span id="b">good company.</span></h1>
 </main>
 <footer><a href="mailto:hello@goodcompanylabs.com">say hello</a></footer>
+<script>
+(() => {
+  const canvas = document.getElementById('sky');
+  const ctx = canvas.getContext('2d');
+  const CREAM = '220,226,232';
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, dpr, stars = [];
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const target = Math.round((W * H) / 11000);
+    stars = [];
+    for (let i = 0; i < target; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 0.4 + Math.random() * 0.9,
+        base: 0.25 + Math.random() * 0.35,
+        amp: 0.1 + Math.random() * 0.25,
+        tw: Math.random() * Math.PI * 2,
+        sp: 0.004 + Math.random() * 0.009
+      });
+    }
+    if (still) drawStatic();
+  }
+  window.addEventListener('resize', resize);
+
+  function drawStatic() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CREAM},${s.base})`;
+      ctx.fill();
+    }
+  }
+
+  resize();
+  if (still) return; // respect reduced-motion: stars only, no animation
+
+  let shot = null;
+  function spawnShot() {
+    if (shot) return;
+    const fromLeft = Math.random() < 0.5;
+    const x = fromLeft ? Math.random() * W * 0.4 : W * 0.6 + Math.random() * W * 0.4;
+    const y = Math.random() * H * 0.5;
+    const angle = Math.PI / 5 + Math.random() * Math.PI / 10;
+    const speed = 9 + Math.random() * 5;
+    shot = {
+      x, y,
+      vx: (fromLeft ? 1 : -1) * Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed * 0.55,
+      life: 0, maxLife: 38 + Math.random() * 18
+    };
+  }
+  function scheduleShot() {
+    setTimeout(() => { spawnShot(); scheduleShot(); }, 7000 + Math.random() * 9000);
+  }
+  scheduleShot();
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min((now - last) / 16.7, 3);
+    last = now;
+    ctx.clearRect(0, 0, W, H);
+
+    for (const s of stars) {
+      s.tw += s.sp * dt;
+      const glow = s.base + s.amp * Math.sin(s.tw);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CREAM},${glow})`;
+      ctx.fill();
+    }
+
+    if (shot) {
+      shot.life += dt;
+      shot.x += shot.vx * dt;
+      shot.y += shot.vy * dt;
+      const p = shot.life / shot.maxLife;
+      const alpha = p < 0.15 ? p / 0.15 : (p > 0.7 ? (1 - p) / 0.3 : 1);
+      const mag = Math.hypot(shot.vx, shot.vy);
+      const tx = shot.x - (shot.vx / mag) * 90;
+      const ty = shot.y - (shot.vy / mag) * 90;
+      const grad = ctx.createLinearGradient(tx, ty, shot.x, shot.y);
+      grad.addColorStop(0, `rgba(${CREAM},0)`);
+      grad.addColorStop(1, `rgba(${CREAM},${0.75 * alpha})`);
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(shot.x, shot.y);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(shot.x, shot.y, 1.6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CREAM},${alpha})`;
+      ctx.fill();
+      if (p >= 1 || shot.x < -100 || shot.x > W + 100 || shot.y > H + 100) shot = null;
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>
