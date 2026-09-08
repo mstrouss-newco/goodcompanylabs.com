@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Good Company Labs — what we're building</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Karla:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3F5F8;
+    --ink:#101B33;
+    --muted:#59637A;
+    --dim:#7A8397;
+    --accent:#9A5B12;
+    --rule:rgba(16,27,51,.14);
+    --tint:rgba(154,91,18,.07);
+    --note:rgba(16,27,51,.04);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Karla',system-ui,sans-serif;font-size:17px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:0 28px;}
+
+  .bar{position:fixed;top:16px;right:16px;z-index:50;display:flex;gap:8px;}
+  .bar button{
+    font-family:'Karla',sans-serif;font-size:.82rem;
+    background:#fff;color:var(--ink);border:1px solid var(--rule);
+    padding:.45rem .8rem;border-radius:100px;cursor:pointer;
+    box-shadow:0 1px 3px rgba(16,27,51,.08);
+  }
+
+  /* password gate */
+  #gate{
+    position:fixed;inset:0;z-index:100;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;padding:28px;
+  }
+  #gate .inner{width:100%;max-width:320px;}
+  #gate h2{
+    font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:2.1rem;letter-spacing:-.02em;margin:0 0 1.2rem;
+  }
+  #gate input{
+    width:100%;font-family:'Karla',sans-serif;font-size:1rem;
+    padding:.65rem .8rem;background:#fff;color:var(--ink);
+    border:1px solid var(--rule);border-radius:3px;
+  }
+  #gate input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  #gate button{
+    margin-top:.6rem;width:100%;font-family:'Karla',sans-serif;font-size:.95rem;
+    padding:.65rem;background:var(--ink);color:var(--paper);
+    border:0;border-radius:3px;cursor:pointer;
+  }
+  #gate .err{margin:.7rem 0 0;font-size:.88rem;color:var(--accent);min-height:1.2em;}
+  body.locked{overflow:hidden;}
+  body.locked .wrap,body.locked .bar{display:none;}
+  .bar button:hover{border-color:var(--muted);}
+  body.editing .bar .edit{background:var(--accent);color:#fff;border-color:var(--accent);}
+  body.editing [contenteditable="true"]:hover{outline:1px dashed rgba(154,91,18,.45);outline-offset:3px;}
+  [contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:3px;}
+  @media print{.bar{display:none;}}
+
+  header{padding:14vh 0 9vh;}
+  h1{
+    font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:clamp(2.7rem,9vw,5rem);line-height:1;letter-spacing:-.02em;margin:0;
+    transform-origin:left center;animation:breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.028);}}
+  .standfirst{margin:1.6rem 0 0;max-width:34em;color:var(--muted);}
+
+  .stage{padding:0 0 4rem;}
+  .stage-head{
+    display:flex;align-items:baseline;gap:1rem;
+    padding-bottom:.9rem;border-bottom:1px solid var(--rule);
+  }
+  .stage-head h2{
+    font-family:'Fraunces',Georgia,serif;font-weight:400;font-size:1.25rem;
+    margin:0;letter-spacing:-.01em;
+  }
+  .stage-head span{color:var(--dim);font-size:.86rem;}
+
+  details{border-bottom:1px solid var(--rule);}
+  summary{list-style:none;cursor:pointer;padding:1.8rem 0;display:block;position:relative;}
+  summary::-webkit-details-marker{display:none;}
+  summary:focus-visible{outline:2px solid var(--accent);outline-offset:6px;}
+  .v-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:.35rem 1rem;}
+  .v-name{
+    font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.55rem;
+    letter-spacing:-.015em;line-height:1.15;
+  }
+  .v-status{color:var(--accent);font-size:.85rem;}
+  .v-prop{margin:.55rem 0 0;max-width:56ch;color:var(--muted);padding-right:4.5rem;}
+  .more{position:absolute;right:0;bottom:1.8rem;font-size:.8rem;color:var(--dim);}
+  details[open] .more::after{content:" \25B4";}
+  details:not([open]) .more::after{content:" \25BE";}
+
+  .detail{padding:.2rem 0 2.2rem;}
+
+  .preview{
+    display:block;position:relative;width:100%;max-width:580px;
+    aspect-ratio:16/10;overflow:hidden;background:#fff;
+    border:1px solid var(--rule);border-radius:4px;
+    box-shadow:0 1px 2px rgba(16,27,51,.06);text-decoration:none;
+  }
+  .preview iframe{
+    width:1400px;height:875px;border:0;
+    transform:scale(.4143);transform-origin:0 0;pointer-events:none;
+  }
+  .preview img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cap{display:block;font-size:.79rem;color:var(--dim);margin:.45rem 0 1.5rem;}
+  .placeholder{
+    width:100%;max-width:580px;aspect-ratio:16/10;display:flex;align-items:center;
+    padding:1.4rem;margin-bottom:1.5rem;
+    border:1px dashed var(--rule);border-radius:4px;color:var(--dim);font-size:.9rem;
+  }
+
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:1.1rem 1rem;margin:0 0 1.6rem;max-width:580px;
+  }
+  .stats div{border-top:1px solid var(--rule);padding-top:.55rem;}
+  .stats b{
+    display:block;font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:1.5rem;line-height:1.1;letter-spacing:-.02em;
+  }
+  .stats span{display:block;font-size:.77rem;color:var(--dim);margin-top:.15rem;line-height:1.3;}
+
+  .walk{max-width:580px;margin:0 0 1.5rem;}
+  .walk h3{
+    font-family:'Karla',sans-serif;font-weight:500;font-size:.84rem;
+    color:var(--accent);margin:0 0 .5rem;
+  }
+  .walk a{
+    display:flex;justify-content:space-between;align-items:baseline;gap:1.2rem;
+    padding:.72rem 0;border-top:1px solid var(--rule);
+    text-decoration:none;color:var(--ink);transition:color .2s ease;
+  }
+  .walk a:last-of-type{border-bottom:1px solid var(--rule);}
+  .walk a:hover .t,.walk a:focus-visible .t{color:var(--accent);}
+  .walk .t{font-weight:500;white-space:nowrap;}
+  .walk .d{color:var(--dim);font-size:.86rem;text-align:right;}
+
+  .ask{
+    max-width:60ch;background:var(--tint);border-left:2px solid var(--accent);
+    padding:.95rem 1.2rem;border-radius:0 3px 3px 0;margin-bottom:1.2rem;
+  }
+  .ask h3{
+    font-family:'Karla',sans-serif;font-weight:500;font-size:.84rem;
+    color:var(--accent);margin:0 0 .3rem;
+  }
+  .ask p{margin:0;}
+  .ask p + p{margin-top:.5rem;}
+
+  .block{margin-top:1.1rem;max-width:60ch;}
+  .block h3{
+    font-family:'Karla',sans-serif;font-weight:500;font-size:.84rem;
+    color:var(--accent);margin:0 0 .25rem;
+  }
+  .block p{margin:0;color:var(--muted);}
+  .role{margin-top:1.1rem;font-size:.9rem;color:var(--dim);}
+  .role b{font-weight:500;color:var(--muted);}
+
+  .note{
+    margin-top:1.4rem;max-width:60ch;background:var(--note);
+    border:1px solid var(--rule);border-radius:3px;
+    padding:.8rem 1rem;font-size:.94rem;color:var(--ink);min-height:2.6rem;
+  }
+  .note:empty::before{content:attr(data-placeholder);color:var(--dim);}
+
+  footer{padding:1rem 0 8rem;}
+  footer a{
+    font-family:'Fraunces',Georgia,serif;font-size:1.2rem;color:var(--muted);text-decoration:none;
+  }
+  footer a:hover{color:var(--ink);}
+
+  @media (max-width:600px){
+    body{font-size:16px;}
+    header{padding:11vh 0 7vh;}
+    summary{padding:1.5rem 0;}
+    .v-name{font-size:1.32rem;}
+    .v-prop{padding-right:0;}
+    .more{position:static;display:block;margin-top:.6rem;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .bar{top:auto;bottom:14px;right:14px;}
+    .walk a{flex-direction:column;gap:.15rem;}
+    .walk .d{text-align:left;}
+  }
+  @media (prefers-reduced-motion:reduce){h1{animation:none;}}
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <div class="inner">
+    <h2>good companies.</h2>
+    <input id="pw" type="password" placeholder="Password" autocomplete="off" autofocus>
+    <button id="go" type="button">Enter</button>
+    <p class="err" id="err"></p>
+  </div>
+</div>
+
+<div class="bar">
+  <button class="edit" type="button">Edit</button>
+  <button class="save" type="button">Save a copy</button>
+</div>
+
+<div class="wrap">
+
+  <header>
+    <h1>good companies.</h1>
+    <p class="standfirst">Three of these are worth a conversation. The rest run on their own, and are here in case one happens to be your thing.</p>
+  </header>
+
+  <section class="stage">
+    <div class="stage-head"><h2>Worth talking about</h2><span>where a partner changes the outcome</span></div>
+
+    <!-- KIDFORMS -->
+    <details open>
+      <summary>
+        <div class="v-top"><div class="v-name">KidForms</div><div class="v-status">owner · needs finishing</div></div>
+        <p class="v-prop">Parents fill out the same information about their kids dozens of times a year. KidForms reads it off one old form and fills in everything after that. $3 a month.</p>
+        <span class="more">less</span>
+      </summary>
+      <div class="detail">
+        <a class="preview" href="https://kidforms.co/" target="_blank" rel="noopener">
+          <iframe src="https://kidforms.co/" title="KidForms" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+        </a>
+        <span class="cap">kidforms.co</span>
+
+        <div class="walk">
+          <h3>Walk through it</h3>
+          <a href="https://kidforms.co/" target="_blank" rel="noopener"><span class="t">The pitch</span><span class="d">How it works, pricing, security</span></a>
+          <a href="https://kidforms.co/try.html" target="_blank" rel="noopener"><span class="t">Try a form</span><span class="d">Upload an old form, watch it read the details off</span></a>
+        </div>
+
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>Someone to finish it and run it with me, using agents to do the building. The extension needs to clear the Chrome store, and the offer needs testing on real parents.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Camps and schools get it near free and hand it to parents at registration, so it lands when the form is already open. Parents then pay to reuse their info on the dentist, the league, next year's camp.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>Live, with the whole loop built: import an old form, confirm the details, reuse them anywhere. The browser extension is built but not yet in the Chrome store.</p>
+        </div>
+        <p class="role"><b>My role:</b> owner</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <!-- BUILDABLE KIDS -->
+    <details open>
+      <summary>
+        <div class="v-top"><div class="v-name">Buildable Kids</div><div class="v-status">owner · prototype</div></div>
+        <p class="v-prop">Start with games kids ask for and build with a parent in an afternoon. Grow into an AI-first brand for parents and kids, where the same trust carries music, stories and learning.</p>
+        <span class="more">less</span>
+      </summary>
+      <div class="detail">
+        <a class="preview" href="https://www.buildablekids.com/cobuild.html" target="_blank" rel="noopener">
+          <iframe src="https://www.buildablekids.com/cobuild.html" title="Cobuild by Buildable Kids" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+        </a>
+        <span class="cap">Cobuild, the first offer</span>
+
+        <div class="walk">
+          <h3>Walk through it</h3>
+          <a href="https://www.buildablekids.com/cobuild.html" target="_blank" rel="noopener"><span class="t">The Cobuild offer</span><span class="d">$10 a month, every kid in the house, no ads ever</span></a>
+          <a href="https://www.buildablekids.com/partners.html" target="_blank" rel="noopener"><span class="t">The wider platform</span><span class="d">Where it goes after games</span></a>
+        </div>
+
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>Someone to take it from prototype to product and run it, then test the offer on families.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Games first, because a game a kid invented travels through their family and their class on a single link, with no app and no account. That audience is the foundation for everything after it.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>Prototype. Cobuild is the first offer at $10 a month. Nothing a child makes goes public without a parent turning it on.</p>
+        </div>
+        <p class="role"><b>My role:</b> owner</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <!-- THE COMMONS -->
+    <details open>
+      <summary>
+        <div class="v-top"><div class="v-name">The Commons</div><div class="v-status">owner · pre-raise</div></div>
+        <p class="v-prop">A media engine that bridges online and offline. Real rooms where chefs and creators cook alongside their audience, filmed live, with ticket sales covering the entire cost of production.</p>
+        <span class="more">less</span>
+      </summary>
+      <div class="detail">
+        <div class="stats">
+          <div><b>$10M</b><span>sales at the first one</span></div>
+          <div><b>150K</b><span>guests a year</span></div>
+          <div><b>93</b><span>net promoter score</span></div>
+          <div><b>$8.3M</b><span>room revenue, year two</span></div>
+          <div><b>$2.27M</b><span>room EBITDA, year two</span></div>
+          <div><b>14 mo</b><span>payback on $2.3M build</span></div>
+        </div>
+
+        <a class="preview" href="https://the-commons.co/partners.html" target="_blank" rel="noopener">
+          <img src="https://the-commons.co/img/room-hero.jpg" alt="The Commons room: one floor, twenty-plus cooking stations, a chef's counter and a live camera crew" loading="lazy">
+        </a>
+        <span class="cap">The room. One floor, twenty-plus stations, a chef's counter and a camera crew, all at once.</span>
+
+        <div class="walk">
+          <h3>Walk through it</h3>
+          <a href="https://the-commons.co/partners.html" target="_blank" rel="noopener"><span class="t">The room</span><span class="d">Floor plan, stations, how a night is filmed</span></a>
+          <a href="https://the-commons.co/partners.html" target="_blank" rel="noopener"><span class="t">Why talent says yes</span><span class="d">We pay them to promote themselves</span></a>
+          <a href="https://the-commons.co/partners.html" target="_blank" rel="noopener"><span class="t">The content engine</span><span class="d">More output than Food Network, at zero cost</span></a>
+          <a href="https://the-commons.co/partners.html" target="_blank" rel="noopener"><span class="t">Ten rooms, eight years</span><span class="d">$3M to $91M, unit by unit</span></a>
+        </div>
+
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>A fundraising partner. I raised the first million twice and got pulled away both times, once by Covid and once by taking over as CEO of Standard Giving.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>We pay the talent to promote themselves: $600 to $10,000 a day from ticket sales, turnkey, and they keep the content we film. Seats release in batches, so a room only runs once it is sold.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>Built before as 918 F Street under LivingSocial. Closed in 2014, never rebuilt. Los Angeles is the first room.</p>
+        </div>
+        <p class="role"><b>My role:</b> owner</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head"><h2>Running on their own</h2><span>in case one is your thing</span></div>
+
+    <details>
+      <summary>
+        <div class="v-top"><div class="v-name">Addie Health</div><div class="v-status">operator · in market</div></div>
+        <p class="v-prop">Skincare for people whose faces changed on GLP-1s. Affiliates converting today, going into 4,000 retail stores.</p>
+        <span class="more">more</span>
+      </summary>
+      <div class="detail">
+        <div class="walk">
+          <h3>Walk through it</h3>
+          <a href="https://addiehealth.co" target="_blank" rel="noopener"><span class="t">The brand</span><span class="d">Product, claims, the clinical citation</span></a>
+          <a href="https://linkedin.com/in/jordanpmeyer" target="_blank" rel="noopener"><span class="t">Jordan Meyer</span><span class="d">CEO, former Obagi executive</span></a>
+        </div>
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>Nothing open, unless you want to build the telehealth platform with Jordan.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Creator affiliates first, retail behind it. $125 once or $100 on subscription, shipping every sixty days.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>Selling now, with a published clinical citation behind the formula, which almost nothing in skincare has.</p>
+        </div>
+        <p class="role"><b>My role:</b> running the direct to consumer affiliate model, overseeing the acquisition lead</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="v-top"><div class="v-name">Sandwell</div><div class="v-status">advisor · in market</div></div>
+        <p class="v-prop">Chef-driven sandwiches, nothing fried, no red meat or butter in the store. Three New York locations since 2023, a fourth coming.</p>
+        <span class="more">more</span>
+      </summary>
+      <div class="detail">
+        <div class="placeholder">Preview pending. Sandwell's site blocks embedding, so this one needs a captured image.</div>
+        <div class="walk">
+          <h3>Walk through it</h3>
+          <a href="https://www.getsandwell.com/" target="_blank" rel="noopener"><span class="t">The shops</span><span class="d">Menu, three locations, catering</span></a>
+          <a href="https://www.getsandwell.com/about" target="_blank" rel="noopener"><span class="t">The founder</span><span class="d">Andy Gottlieb, also on The Commons team</span></a>
+        </div>
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>Invest ahead of private equity. Institutional capital shows up around store four or five, which is where this is.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Store by store in dense Manhattan trade areas, each location underwriting the next, with catering filling the middle of the day.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>Trading in SoHo, Gramercy and the Upper West Side. Coverage in Forbes, Inc., Eater and Nation's Restaurant News.</p>
+        </div>
+        <p class="role"><b>My role:</b> advising fundraising and marketing, about an hour a week</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="v-top"><div class="v-name">True Winds</div><div class="v-status">advisor · in market</div></div>
+        <p class="v-prop">A retail and media business around an expedition series with Ewan McGregor. Brand partners fund the series, the series builds the audience, the products follow.</p>
+        <span class="more">more</span>
+      </summary>
+      <div class="detail">
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>A 10% split on any brand you bring in, and possible investment into the intellectual property behind the YouTube channel.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Brand partners fund the series first. Owned products then sell into an audience we made rather than one we rented.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>In market. The first partner conversation looks like it could close at seven figures.</p>
+        </div>
+        <p class="role"><b>My role:</b> advisor</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="v-top"><div class="v-name">Hyperlocal network</div><div class="v-status">advisor · in market</div></div>
+        <p class="v-prop">Community accounts for towns nobody serves well, pooled into something a local advertiser can buy.</p>
+        <span class="more">more</span>
+      </summary>
+      <div class="detail">
+        <div class="ask">
+          <h3>The opportunity</h3>
+          <p>Nothing packaged yet. Worth a conversation if local media is your area.</p>
+        </div>
+        <div class="block">
+          <h3>Go to market</h3>
+          <p>Build and acquire town accounts, pool the audience, then sell it to local and regional advertisers who have nowhere good to spend.</p>
+        </div>
+        <div class="block">
+          <h3>Where it stands</h3>
+          <p>In market, running with Mark.</p>
+        </div>
+        <p class="role"><b>My role:</b> advisor</p>
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="v-top"><div class="v-name">Everything else</div><div class="v-status">five more</div></div>
+        <p class="v-prop">Five other opportunities worth discussing live.</p>
+        <span class="more">more</span>
+      </summary>
+      <div class="detail">
+        <div class="note" data-placeholder="Notes…"></div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <a href="mailto:hello@goodcompanylabs.com">say hello</a>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var HASH = '4b2741b2f2a476546cac9414b1ccab426ed8568da664615be14f9a5d369b1563';
+  var gate = document.getElementById('gate');
+  var pw = document.getElementById('pw');
+  var go = document.getElementById('go');
+  var err = document.getElementById('err');
+
+  function sha256(str){
+    var bytes = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', bytes).then(function(buf){
+      return Array.from(new Uint8Array(buf)).map(function(b){
+        return b.toString(16).padStart(2,'0');
+      }).join('');
+    });
+  }
+
+  function unlock(){
+    document.body.classList.remove('locked');
+    gate.remove();
+  }
+
+  function attempt(){
+    sha256(pw.value.trim()).then(function(h){
+      if(h === HASH){ unlock(); }
+      else { err.textContent = 'Not quite. Try again.'; pw.select(); }
+    }).catch(function(){
+      err.textContent = 'Something went wrong. Reload and try again.';
+    });
+  }
+
+  go.addEventListener('click', attempt);
+  pw.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') attempt();
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var SEL = 'h1,.standfirst,.stage-head h2,.stage-head span,.v-name,.v-status,.v-prop,'
+          + '.ask h3,.ask p,.block h3,.block p,.role,.stats b,.stats span,.note,'
+          + '.walk h3,.walk .t,.walk .d,.cap';
+  var editing = false;
+  var editBtn = document.querySelector('.bar .edit');
+  var saveBtn = document.querySelector('.bar .save');
+
+  function setEditable(on){
+    document.querySelectorAll(SEL).forEach(function(el){
+      if(on){ el.setAttribute('contenteditable','true'); }
+      else if(!el.classList.contains('note')){ el.removeAttribute('contenteditable'); }
+    });
+    document.body.classList.toggle('editing', on);
+    editBtn.textContent = on ? 'Done' : 'Edit';
+  }
+
+  document.querySelectorAll('.note').forEach(function(n){
+    n.setAttribute('contenteditable','true');
+  });
+
+  editBtn.addEventListener('click', function(){
+    editing = !editing;
+    setEditable(editing);
+  });
+
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(a && document.body.classList.contains('editing')) e.preventDefault();
+  });
+
+  saveBtn.addEventListener('click', function(){
+    if(editing){ editing = false; setEditable(false); }
+    var clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[contenteditable]').forEach(function(el){
+      el.removeAttribute('contenteditable');
+    });
+    var blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], {type:'text/html'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'good-company-ventures.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
+})();
+</script>
+</body>
+</html>
